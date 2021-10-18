@@ -42,8 +42,6 @@ ClientConnection::ClientConnection (NetServerPtr s, int fd) : router(static_cast
   server = s;
 
   TRACEPRINTF (t, 8, "ClientConnection Init");
-  Router& router = static_cast<Router &>(s->router);
-  this->addr = router.get_client_addr(this->t);
 
   this->fd = fd;
 
@@ -80,13 +78,6 @@ ClientConnection::start()
     return;
   sendbuf.start();
   recvbuf.start();
-
-  if (!addr)
-    {
-      sendreject (EIB_RESET_CONNECTION);
-      stop(true);
-      return;
-    }
   running = true;
 }
 
@@ -96,8 +87,12 @@ ClientConnection::stop(bool err)
   if (addr)
     {
       TRACEPRINTF (t, 8, "ClientConnection %s closing", FormatEIBAddr (addr));
-      Router *router = static_cast<Router *>(&server->router);
-      router->release_client_addr(addr);
+      if (auto_addr)
+        {
+          Router *router = static_cast<Router *>(&server->router);
+          router->release_client_addr(addr);
+          auto_addr = false;
+        }
       addr = 0;
     }
   exit_conn();
@@ -148,6 +143,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
         {
           exit_conn();
           sendreject (EIB_RESET_CONNECTION);
+          addr = xlen == 4 ? (buf[2] << 8) | (buf[3]) : 0;
         }
       else
         a_conn->recv_Data(buf,xlen);
@@ -250,6 +246,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
 
     case EIB_RESET_CONNECTION:
       sendreject (EIB_RESET_CONNECTION);
+      addr = xlen == 4 ? (buf[2] << 8) | (buf[3]) : 0;
       break;
 
     default:
@@ -257,6 +254,20 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
       break;
 
 new_a_conn:
+      if (!addr)
+        {
+          Router& router = static_cast<Router &>(server->router);
+          addr = router.get_client_addr(this->t);
+
+          if (!addr)
+            {
+              exit_conn();
+              sendreject (EIB_RESET_CONNECTION);
+              break;
+            }
+
+          auto_addr = true;
+        }
       a_conn->on_error.set<ClientConnection,&ClientConnection::exit_conn>(this);
       if (a_conn->setup(buf,xlen))
         {

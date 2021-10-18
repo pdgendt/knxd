@@ -79,6 +79,8 @@ protected:
   void exit_conn();
 
 private:
+  bool auto_addr = false;
+
   /** client connection */
   int fd;
 };
