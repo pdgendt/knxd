@@ -128,6 +128,12 @@ LLserial::start()
       goto ex3;
     }
 
+  if (tcflush(fd, TCIOFLUSH))
+    {
+      ERRORPRINTF (t, E_ERROR | 26, "tcflush %s failed: %s", dev, strerror(errno));
+      goto ex3;
+    }
+
   TRACEPRINTF (t, 2, "Opened");
   FDdriver::start();
   return;
