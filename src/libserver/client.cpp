@@ -35,7 +35,7 @@
 #endif
 #include "server.h"
 
-ClientConnection::ClientConnection (NetServerPtr s, int fd) : router(static_cast<Router&>(s->router)), sendbuf(fd),recvbuf(fd)
+ClientConnection::ClientConnection (NetServerPtr s, int fd) : router(static_cast<Router&>(s->router)), addr(0), sendbuf(fd), recvbuf(fd)
 {
   t = TracePtr(new Trace(*(s->t)));
   t->setAuxName("CConn");
@@ -89,8 +89,7 @@ ClientConnection::stop(bool err)
       TRACEPRINTF (t, 8, "ClientConnection %s closing", FormatEIBAddr (addr));
       if (auto_addr)
         {
-          Router *router = static_cast<Router *>(&server->router);
-          router->release_client_addr(addr);
+          router.release_client_addr(addr);
           auto_addr = false;
         }
       addr = 0;
@@ -256,7 +255,6 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
 new_a_conn:
       if (!addr)
         {
-          Router& router = static_cast<Router &>(server->router);
           addr = router.get_client_addr(this->t);
 
           if (!addr)
