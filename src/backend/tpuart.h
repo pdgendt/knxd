@@ -66,6 +66,7 @@ protected:
 
   bool ackallgroup;
   bool ackallindividual;
+  bool maxresetretry;
 
   /** process a received frame */
   virtual void RecvLPDU (const uint8_t * data, int len);

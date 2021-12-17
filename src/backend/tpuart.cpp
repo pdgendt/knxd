@@ -122,6 +122,7 @@ TPUARTwrap::setup()
 {
   ackallgroup = cfg->value("ack-group",false);
   ackallindividual = cfg->value("ack-individual",false);
+  maxresetretry = cfg->value("max-reset-retry", 3);
   monitor = cfg->value("monitor",false);
 
   if (cfg->value("device","").length() > 0)
@@ -310,12 +311,12 @@ TPUARTwrap::timer_cb(ev::timer &, int)
     case T_new:
       break;
     case T_in_reset:
-      if (retry < 3)
+      if (maxresetretry > 0 && retry >= maxresetretry)
         {
-          setstate(T_in_reset);
+          setstate(T_error);
           return;
         }
-      setstate(T_error);
+      setstate(T_in_reset);
       break;
 
     case T_in_getstate:
@@ -548,7 +549,7 @@ TPUARTwrap::setstate(enum TSTATE new_state)
       new_state = T_in_reset;
     /* fall thru */
     case T_in_reset:
-      if (state == T_in_reset)
+      if (state == T_in_reset && maxresetretry > 0)
         retry++;
       else
         retry = 1;
@@ -557,7 +558,7 @@ TPUARTwrap::setstate(enum TSTATE new_state)
         TRACEPRINTF (t, 0, "SendReset %02X", c);
         LowLevelIface::send_Data(c);
       }
-      timer.start(0.5,0);
+      timer.start(1.,0);
       break;
 
     case T_in_setaddr:
