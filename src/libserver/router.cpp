@@ -145,7 +145,7 @@ Router::readaddr (const std::string& addr, eibaddr_t& parsed)
   int a, b, c;
   if (sscanf (addr.c_str(), "%d.%d.%d", &a, &b, &c) != 3)
     {
-      ERRORPRINTF (t, E_ERROR | 81, "'%s' is not a device address. Use X.Y.Z format.", addr);
+      // ERRORPRINTF (t, E_ERROR | 81, "'%s' is not a device address. Use X.Y.Z format.", addr);
       return false;
     }
   parsed = ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | (c & 0xff);
@@ -158,7 +158,7 @@ Router::readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len)
   int a, b, c;
   if (sscanf (addr.c_str(), "%d.%d.%d:%d", &a, &b, &c, &len) != 4)
     {
-      ERRORPRINTF (t, E_ERROR | 82, "An address block needs to look like X.Y.Z:N, not '%s'.", addr);
+      // ERRORPRINTF (t, E_ERROR | 82, "An address block needs to look like X.Y.Z:N, not '%s'.", addr);
       return false;
     }
   parsed = ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | (c & 0xff);

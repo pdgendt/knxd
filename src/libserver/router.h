@@ -67,6 +67,10 @@ class Router : public BaseRouter
   friend class RouterHigh;
 
 public:
+  /** parser support */
+  static bool readaddr (const std::string& addr, eibaddr_t& parsed);
+  static bool readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len);
+  
   Router(IniData& d, std::string sn);
   virtual ~Router();
 
@@ -252,10 +256,6 @@ private:
 
   /** group cache */
   std::shared_ptr<GroupCache> cache;
-
-  /** parser support */
-  bool readaddr (const std::string& addr, eibaddr_t& parsed);
-  bool readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len);
 
   /** error checking */
   bool has_send_more(LinkConnectPtr i);

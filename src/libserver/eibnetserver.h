@@ -172,6 +172,7 @@ private:
   bool tunnel;
   bool route;
   bool discover;
+  eibaddr_t discover_addr;
   bool single_port;
   std::string multicastaddr;
   uint16_t port;

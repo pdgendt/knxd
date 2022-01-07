@@ -150,11 +150,17 @@ EIBnetServer::setup()
 //                     const bool tunnel, const bool route,
 //                     const bool discover, const bool single_port)
 {
+  std::string x;
   if(!Server::setup())
     return false;
   route = router_cfg->name.size() > 0;
   tunnel = tunnel_cfg->name.size() > 0;
   discover = cfg->value("discover",false);
+  discover_addr = dynamic_cast<Router *>(&router)->addr;
+  x = cfg->value("discover-addr", "");
+  if (x.size()) {
+    Router::readaddr(x, discover_addr);
+  }
   single_port = !cfg->value("multi-port",false);
   multicastaddr = cfg->value("multicast-address","224.0.23.12");
   port = cfg->value("port",3671);
@@ -554,7 +560,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 
       r2.KNXmedium = 2;
       r2.devicestatus = 0;
-      r2.individual_addr = dynamic_cast<Router *>(&router)->addr;
+      r2.individual_addr = discover_addr;
       r2.installid = 0;
       r2.multicastaddr = mcast->maddr.sin_addr;
       r2.serial[0]=1;
@@ -600,7 +606,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       TRACEPRINTF (t, 8, "DESCRIBE");
       r2.KNXmedium = 2;
       r2.devicestatus = 0;
-      r2.individual_addr = dynamic_cast<Router *>(&router)->addr;
+      r2.individual_addr = discover_addr;
       r2.installid = 0;
       r2.multicastaddr = mcast->maddr.sin_addr;
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
