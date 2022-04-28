@@ -306,7 +306,11 @@ TPUARTwrap::timer_cb(ev::timer &, int)
   switch(state)
     {
     case T_error:
-      stop(true);
+      if (maxresetretry > 0) {
+        stop(true);
+      } else {
+        setstate(T_in_reset);
+      }
       break;
     case T_new:
       break;
@@ -322,7 +326,7 @@ TPUARTwrap::timer_cb(ev::timer &, int)
     case T_in_getstate:
       if (retry > 5)
         {
-          stop(true);
+          setstate(T_error);
           return;
         }
       setstate(state);
